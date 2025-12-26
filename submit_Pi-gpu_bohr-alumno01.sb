@@ -1,0 +1,42 @@
+#!/bin/bash
+
+#SBATCH --job-name=GPU_MonteCarlo_Pi      # Nombre más descriptivo
+#SBATCH --partition=bohr-gpu             # Partición de destino       
+#SBATCH --output=resultado_pi_%j.out     # Nombre de log diferente
+#SBATCH --error=errores_pi_%j.err        # Archivo de errores separado
+#SBATCH --chdir=/home/alumno01/lab-gpu   # Tu directorio de trabajo
+
+# Carga del entorno de trabajo
+module load anaconda/2025.06
+
+echo "=========================================================="
+echo "  PROCESADO DE MONTE CARLO EN GPU - LABORATORIO 6"
+echo "  Usuario: $USER | Nodo: $SLURMD_NODENAME"
+echo "=========================================================="
+
+# 1. Transformación del Notebook a código fuente Python
+# Cambiamos la carpeta de salida o el mensaje para diferenciarlo
+echo "[INFO] Generando script .py a partir del notebook..."
+jupyter nbconvert --to script pi-gpu-alumno01.ipynb --output pi_ejecucion
+
+# 2. Definición de la batería de pruebas
+# En lugar de un bucle for simple, usamos una lista explícita o nombres de variables distintos
+TAMANOS=("10000000" "100000000")
+
+for VALOR in "${TAMANOS[@]}"; do
+    echo ""
+    echo ">> Iniciando simulación para N = $VALOR puntos"
+    echo "----------------------------------------------------------"
+    # Ejecutamos el script generado (nbconvert añade .py automáticamente)
+    ipython pi_ejecucion.py "$VALOR"
+    echo ">> Finalizada ejecución para N = $VALOR"
+done
+
+echo ""
+echo "=========================================================="
+echo "  Tarea completada con éxito: $(date)"
+echo "=========================================================="
+
+# Limpieza opcional del entorno
+module unload anaconda/2025.06
+
